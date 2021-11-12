@@ -45,7 +45,7 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
 
     private int playerID;
 
-    GameClient() {
+    GameClient(String hostName) {
 
         addMouseMotionListener(this);
         addKeyListener(this);
@@ -56,7 +56,7 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
         setVisible(true);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        openSocket();
+        openSocket(hostName);
 
         timer = new Timer(DELAY, this);
         timer.start();
@@ -97,17 +97,15 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
         b.display(g);
     }
 
-    public void openSocket() {
-        String hostName = "localhost";
+    public void openSocket(String hostName) {
+        // String hostName = "localhost";
         int portNumber = 3000;
         try {
             
             Socket socket = new Socket(hostName, portNumber);
             PrintWriter toServer = new PrintWriter(socket.getOutputStream(), true);
             BufferedReader fromServerStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            // BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
-            // String fromServer;
-            // String fromUser;
+
 
             this.playerID = Integer.parseInt(fromServerStream.readLine());
             String yourWorkersRaw = fromServerStream.readLine();
@@ -139,20 +137,7 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
             this.fromServerNonblocking = new NonblockingBufferedReader(fromServerStream);
             this.toServer = toServer;
 
-            // while ((fromServer = fromServerStream.readLine()) != null) {
-            // System.out.println("Server: " + fromServer);
-            // if (fromServer.equals("Bye."))
-            // break;
 
-            // if(!listening) {
-            // System.out.println("waiting for user input");
-            // fromUser = stdIn.readLine();
-            // if (fromUser != null) {
-            // System.out.println("Client: " + fromUser);
-            // toServer.println(fromUser);
-            // }
-            // }
-            // }
         } catch (UnknownHostException e) {
             System.err.println("Don't know about host " + hostName);
             System.exit(1);
@@ -165,7 +150,11 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
     }
 
     public static void main(String[] args) {
-        new GameClient();
+        if(args.length != 1) {
+            System.out.println("Usage: GameClient <hostName>");
+            return;
+        }
+        new GameClient(args[0]);
     }
 
     @Override

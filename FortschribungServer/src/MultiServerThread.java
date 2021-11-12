@@ -38,6 +38,8 @@ public class MultiServerThread extends Thread {
 
     public int id = (int)(Math.random() * 1000);
 
+    public int dataIndex;
+
     private static StringBuffer incoming = new StringBuffer();
 
     public MultiServerThread(Socket socket) {
@@ -61,9 +63,9 @@ public class MultiServerThread extends Thread {
                 if (inputLine.length() > 0) {
                     MultiServer.sendData(this, inputLine);
                 }
-                if (incoming.length() > 0) {
-                    toClient.println(incoming.toString());
-                    incoming = new StringBuffer();
+                if (MultiServer.outgoingData.get(dataIndex).length() > 0) {
+                    toClient.println(MultiServer.outgoingData.get(dataIndex).toString());
+                    MultiServer.outgoingData.set(dataIndex, new StringBuffer());
                 }
             }
 

@@ -45,14 +45,14 @@ public class TestClient {
         int portNumber = Integer.parseInt(args[1]);
 
         try (Socket socket = new Socket(hostName, portNumber);
-                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));) {
+                PrintWriter toServer = new PrintWriter(socket.getOutputStream(), true);
+                BufferedReader fromServerStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));) {
 
             BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
             String fromServer;
             String fromUser;
 
-            while ((fromServer = in.readLine()) != null) {
+            while ((fromServer = fromServerStream.readLine()) != null) {
                 System.out.println("Server: " + fromServer);
                 if (fromServer.equals("Bye."))
                     break;
@@ -60,7 +60,7 @@ public class TestClient {
                 fromUser = stdIn.readLine();
                 if (fromUser != null) {
                     System.out.println("Client: " + fromUser);
-                    out.println(fromUser);
+                    toServer.println(fromUser);
                 }
             }
         } catch (UnknownHostException e) {

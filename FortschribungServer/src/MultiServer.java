@@ -31,9 +31,9 @@
  */
 
 import java.net.*;
-// import java.util.ArrayList;
+import java.util.ArrayList;
 import java.util.HashMap;
-// import java.util.List;
+import java.util.List;
 import java.util.Map;
 import java.io.*;
 
@@ -43,13 +43,23 @@ public class MultiServer {
     private static MultiServerThread clientA;
     private static MultiServerThread clientB;
 
+
+    public static List<StringBuffer> outgoingData = new ArrayList<>();
+    
+
     private static Map<MultiServerThread, MultiServerThread> crossRoads = new HashMap<>();
+
+    private static int i = 0;
 
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
             System.err.println("Usage: java MultiServer <port number>");
             System.exit(1);
         }
+
+        
+        outgoingData.add(new StringBuffer());
+        outgoingData.add(new StringBuffer());
         
         int portNumber = Integer.parseInt(args[0]);
         System.out.println("Listeing on port 3000");
@@ -57,6 +67,7 @@ public class MultiServer {
         try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
             while (clientA == null || clientB == null) {
                 MultiServerThread mst = new MultiServerThread(serverSocket.accept());
+                mst.dataIndex = i++;
                 mst.start();
                 if(clientA == null) clientA = mst;
                 else clientB = mst;
@@ -76,10 +87,12 @@ public class MultiServer {
         System.out.println(from.id + ": " + data);
         MultiServerThread target = MultiServer.crossRoads.get(from);
         System.out.println(target.id + ": " + data);
-        
+        outgoingData.get(from.dataIndex + 1 % 2).append(data);
+        outgoingData.get(from.dataIndex + 1 % 2).append("::");
         // target.send(data);
-        clientA.send(data);
-        clientB.send(data);
+        // clientA.send(data);
+        // clientB.send(data);
+
     }
 
 }

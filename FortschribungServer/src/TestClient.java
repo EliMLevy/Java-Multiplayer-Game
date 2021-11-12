@@ -36,13 +36,16 @@ import java.net.*;
 public class TestClient {
     public static void main(String[] args) throws IOException {
 
-        if (args.length != 2) {
-            System.err.println("Usage: java EchoClient <host name> <port number>");
+        if (args.length != 3) {
+            System.err.println("Usage: java EchoClient <host name> <port number> <listening?>");
             System.exit(1);
         }
 
         String hostName = args[0];
         int portNumber = Integer.parseInt(args[1]);
+        boolean listening;
+        if(args[2].equals("1")) listening = true;
+        else listening = false;
 
         try (Socket socket = new Socket(hostName, portNumber);
                 PrintWriter toServer = new PrintWriter(socket.getOutputStream(), true);
@@ -57,10 +60,13 @@ public class TestClient {
                 if (fromServer.equals("Bye."))
                     break;
 
-                fromUser = stdIn.readLine();
-                if (fromUser != null) {
-                    System.out.println("Client: " + fromUser);
-                    toServer.println(fromUser);
+                if(!listening) {
+                    System.out.println("waiting for user input");
+                    fromUser = stdIn.readLine();
+                    if (fromUser != null) {
+                        System.out.println("Client: " + fromUser);
+                        toServer.println(fromUser);
+                    }
                 }
             }
         } catch (UnknownHostException e) {

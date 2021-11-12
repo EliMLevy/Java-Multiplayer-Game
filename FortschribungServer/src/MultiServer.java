@@ -63,60 +63,13 @@ public class MultiServer {
 
             System.out.println("Got two clients!");
 
-            MultiServerSimpleThread msstA = new MultiServerSimpleThread(clientA, clientB);
-            MultiServerSimpleThread msstB = new MultiServerSimpleThread(clientB, clientA);
+            // Generate starting positions
+
+            MultiServerSimpleThread msstA = new MultiServerSimpleThread(clientA, clientB, 0);
+            MultiServerSimpleThread msstB = new MultiServerSimpleThread(clientB, clientA, 1);
             msstA.start();
             msstB.start();
 
-
-
-            // try (PrintWriter toClientA = new PrintWriter(clientA.getOutputStream(), true);
-            //         BufferedReader fromClientA = new BufferedReader(new InputStreamReader(clientA.getInputStream()));
-
-            //         PrintWriter toClientB = new PrintWriter(clientB.getOutputStream(), true);
-            //         BufferedReader fromClientB = new BufferedReader(new InputStreamReader(clientB.getInputStream()));
-
-            // ) {
-
-            //     toClientA.println("The game will begin now...");
-            //     toClientB.println("The game will begin now...");
-
-            //     String clientAIncoming;
-            //     String clientBIncoming;
-
-            //     boolean clientAClosed = false;
-            //     boolean clientBClosed = false;
-
-            //     while (true) {
-                    
-            //         System.out.println("pre");
-            //         clientAIncoming = fromClientA.readLine();
-            //         System.out.println("limbo");
-            //         clientBIncoming = fromClientB.readLine();
-            //         System.out.println("post");
-
-            //         if (clientAIncoming.equals("CLOSE"))
-            //             clientA.close();
-            //         if (clientBIncoming.equals("CLOSE"))
-            //             clientB.close();
-            //         if(clientAClosed && clientBClosed)
-            //             break;
-                    
-
-            //         if(clientAIncoming.length() > 0) {
-            //             System.out.println(clientAIncoming);
-            //             toClientB.println(clientAIncoming);
-            //         }
-
-            //         if(clientBIncoming.length() > 0) {
-            //             System.out.println(clientBIncoming);
-            //             toClientA.println(clientBIncoming);
-            //         }
-
-            //     }
-            // } catch (IOException e) {
-            //     e.printStackTrace();
-            // }
 
         } catch (IOException e) {
             System.err.println("Could not listen on port " + portNumber);

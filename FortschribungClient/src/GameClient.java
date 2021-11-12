@@ -5,11 +5,17 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.awt.Graphics2D;
 import java.awt.event.*;
-import java.util.ArrayList;
 
 import javax.swing.*;
 import javax.swing.event.MouseInputListener;
+
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+
+import java.io.*;
+import java.net.*;
 
 public class GameClient extends JFrame implements MouseInputListener, ActionListener, KeyListener {
 
@@ -22,6 +28,9 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
     private GameMap gm = new GameMap(1800, 1800);
 
     private List<Worker> workers = new ArrayList<>();
+    private List<Worker> yourWorkers = new ArrayList<>();
+    private Map<Integer, Worker> workerIDs = new HashMap<>();
+    private List<Worker> enemyWorkers = new ArrayList<>();
     private Worker selectedWorker;
 
     private boolean mouseIsPressed = false;
@@ -29,6 +38,12 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
 
     private Timer timer;
     private final int DELAY = 25;
+
+    private PrintWriter toServer;
+    private NonblockingBufferedReader fromServerNonblocking;
+    private StringBuffer pendingToServer = new StringBuffer();
+
+    private int playerID;
 
     GameClient() {
 
@@ -41,10 +56,25 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
         setVisible(true);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
+        openSocket();
+
         timer = new Timer(DELAY, this);
         timer.start();
+
+        // @TODO The server need to generate the workers and tell both clients where they are 
         for (int i = 0; i < 5; i++) {
-            workers.add(new Worker((int) (Math.random() * 100 + 150), (int) (Math.random() * 100 + 150), 3, gm));
+            Worker temp = new Worker((int) (Math.random() * 100 + 150 + (this.playerID * 1600)),
+                    (int) (Math.random() * 100 + 150 + (this.playerID * 1600)), 3, gm, false);
+            workers.add(temp);
+            yourWorkers.add(temp);
+        }
+
+        int otherPlayerID = (this.playerID + 1) % 2;
+        for (int i = 0; i < 5; i++) {
+            Worker temp = new Worker((int) (Math.random() * 100 + 150 + (otherPlayerID * 1600)),
+                    (int) (Math.random() * 100 + 150 + (otherPlayerID * 1600)), 3, gm, true);
+            workers.add(temp);
+            enemyWorkers.add(temp);
         }
     }
 
@@ -80,6 +110,48 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
         b.display(g);
     }
 
+    public void openSocket() {
+        String hostName = "localhost";
+        int portNumber = 3000;
+        try {
+            
+            Socket socket = new Socket(hostName, portNumber);
+            PrintWriter toServer = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader fromServerStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            // BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+            // String fromServer;
+            // String fromUser;
+
+            this.playerID = Integer.parseInt(fromServerStream.readLine());
+
+            this.fromServerNonblocking = new NonblockingBufferedReader(fromServerStream);
+            this.toServer = toServer;
+
+            // while ((fromServer = fromServerStream.readLine()) != null) {
+            // System.out.println("Server: " + fromServer);
+            // if (fromServer.equals("Bye."))
+            // break;
+
+            // if(!listening) {
+            // System.out.println("waiting for user input");
+            // fromUser = stdIn.readLine();
+            // if (fromUser != null) {
+            // System.out.println("Client: " + fromUser);
+            // toServer.println(fromUser);
+            // }
+            // }
+            // }
+        } catch (UnknownHostException e) {
+            System.err.println("Don't know about host " + hostName);
+            System.exit(1);
+        } catch (IOException e) {
+            System.err.println("Couldn't get I/O for the connection to " + hostName);
+            // System.err.println(e.toString());
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+
     public static void main(String[] args) {
         new GameClient();
     }
@@ -88,10 +160,9 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
     public void mouseClicked(MouseEvent e) {
         if (e.getButton() == MouseEvent.BUTTON1) {
             // label.setText("Left Click!");
-            for (Worker w : this.workers) {
+            for (Worker w : this.yourWorkers) {
                 if (dist(mouseX, mouseY, w.absolutePosX, w.absolutePosY) < w.r / 2) {
-
-                    if(this.selectedWorker != null)
+                    if (this.selectedWorker != null)
                         this.selectedWorker.toggleSelected();
                     w.toggleSelected();
                     this.selectedWorker = w;
@@ -103,7 +174,7 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
         }
         if (e.getButton() == MouseEvent.BUTTON3) {
             // label.setText("Right Click!");
-            if(key == 16) {
+            if (key == 16) {
                 this.selectedWorker.addTargetToQueue(this.mouseX, this.mouseY);
             } else {
                 this.selectedWorker.setTarget(this.mouseX, this.mouseY);
@@ -161,6 +232,39 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
     @Override
     public void actionPerformed(ActionEvent e) {
         repaint();
+        try {
+            String incoming = this.fromServerNonblocking.readLine();
+            if(incoming != null)
+                handleServerData(incoming);
+        } catch (IOException error) {
+            error.printStackTrace();
+        }
+        if (this.pendingToServer.length() > 0) {
+            this.toServer.println(this.pendingToServer.toString());
+            this.pendingToServer = new StringBuffer();
+        }
+    }
+
+    public void handleServerData(String data) {
+        String[] parsedMsgs = data.split(" ");
+        for (int i = 0; i < parsedMsgs.length; i++) {
+            switch (parsedMsgs[i]) {
+            case "targetPos": // targetPos <worker id> <posX> <posY>
+
+                break;
+            case "targetObj": // targetObj <worker id> <objID>
+                break;
+
+            case "addTargetPos": // addTargetPos <worker id> <posX> <posY>
+
+                break;
+            case "addTargetObj": // addTargetObj <worker id> <objID>
+
+                break;
+            default:
+                break;
+            }
+        }
     }
 
     public double dist(int x1, int y1, int x2, int y2) {
@@ -170,18 +274,18 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
     @Override
     public void keyTyped(KeyEvent e) {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
     public void keyPressed(KeyEvent e) {
         this.key = e.getKeyCode();
-        
+
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
-        this.key = -1;        
+        this.key = -1;
     }
 
 }

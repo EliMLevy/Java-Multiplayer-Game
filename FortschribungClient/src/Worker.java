@@ -8,6 +8,8 @@ import java.util.Queue;
 
 import javax.swing.*;
 
+
+
 public class Worker {
 
     private int posX = 0;
@@ -31,6 +33,8 @@ public class Worker {
 
     private boolean selected = false;
 
+    private boolean enemy;
+
     private class Target {
         public int x;
         public int y;
@@ -41,7 +45,7 @@ public class Worker {
         }
     }
 
-    public Worker(int xOff, int yOff, int scl, GameMap gm) {
+    public Worker(int xOff, int yOff, int scl, GameMap gm, boolean enemy) {
         this.gm = gm;
 
         this.posX = xOff;
@@ -51,6 +55,8 @@ public class Worker {
         this.absolutePosY = this.posY + this.yOff;
 
         this.scl = scl;
+
+        this.enemy = enemy;
     }
 
     public void display(Graphics2D g) {
@@ -59,7 +65,11 @@ public class Worker {
 
         // int r = this.scl * 10;
 
-        g.setColor(new Color(0, 0, 0));
+        if(this.enemy) {
+            g.setColor(new Color(255, 0, 0));
+        } else {
+            g.setColor(new Color(0,0,255));
+        }
         g.fillOval(x - this.r / 2, y - this.r / 2, this.r, this.r);
 
         if (this.selected) {

@@ -63,8 +63,11 @@ public class MultiServer {
 
             System.out.println("Got two clients!");
 
-            new MultiServerSimpleThread(clientA, clientB).start();
-            new MultiServerSimpleThread(clientB, clientA).start();
+            MultiServerSimpleThread msstA = new MultiServerSimpleThread(clientA, clientB);
+            MultiServerSimpleThread msstB = new MultiServerSimpleThread(clientB, clientA);
+            msstA.start();
+            msstB.start();
+
 
 
             // try (PrintWriter toClientA = new PrintWriter(clientA.getOutputStream(), true);

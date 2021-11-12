@@ -29,7 +29,7 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
 
     private List<Worker> workers = new ArrayList<>();
     private List<Worker> yourWorkers = new ArrayList<>();
-    private Map<Integer, Worker> workerIDs = new HashMap<>();
+    private Map<Integer, Worker> enemyWorkerIDs = new HashMap<>();
     private List<Worker> enemyWorkers = new ArrayList<>();
     private Worker selectedWorker;
 
@@ -62,20 +62,7 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
         timer.start();
 
         // @TODO The server need to generate the workers and tell both clients where they are 
-        for (int i = 0; i < 5; i++) {
-            Worker temp = new Worker((int) (Math.random() * 100 + 150 + (this.playerID * 1600)),
-                    (int) (Math.random() * 100 + 150 + (this.playerID * 1600)), 3, gm, false);
-            workers.add(temp);
-            yourWorkers.add(temp);
-        }
-
-        int otherPlayerID = (this.playerID + 1) % 2;
-        for (int i = 0; i < 5; i++) {
-            Worker temp = new Worker((int) (Math.random() * 100 + 150 + (otherPlayerID * 1600)),
-                    (int) (Math.random() * 100 + 150 + (otherPlayerID * 1600)), 3, gm, true);
-            workers.add(temp);
-            enemyWorkers.add(temp);
-        }
+        
     }
 
     @Override
@@ -123,6 +110,31 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
             // String fromUser;
 
             this.playerID = Integer.parseInt(fromServerStream.readLine());
+            String yourWorkersRaw = fromServerStream.readLine();
+            String enemyWorkersRaw = fromServerStream.readLine();
+
+            String[] yourWorkersParsed = yourWorkersRaw.split(" ");
+            String[] enemyWorkersParsed = enemyWorkersRaw.split(" ");
+            for (int i = 0; i < yourWorkersParsed.length - 2; i += 3) {
+                int x1 = Integer.parseInt(yourWorkersParsed[i + 1]);
+                int y1 = Integer.parseInt(yourWorkersParsed[i + 2]);
+                Worker yourWorker = new Worker(x1, y1, 3, gm, false, i);
+
+                int x2 = Integer.parseInt(enemyWorkersParsed[i + 1]);
+                int y2 = Integer.parseInt(enemyWorkersParsed[i + 2]);
+                Worker enemyWorker = new Worker(x2, y2, 3, gm, true, i);
+
+                workers.add(yourWorker);
+                workers.add(enemyWorker);
+
+                yourWorkers.add(yourWorker);
+
+                enemyWorkerIDs.put(i, enemyWorker);
+
+            }
+    
+            
+
 
             this.fromServerNonblocking = new NonblockingBufferedReader(fromServerStream);
             this.toServer = toServer;

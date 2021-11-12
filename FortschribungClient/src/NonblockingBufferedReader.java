@@ -1,3 +1,10 @@
+/*
+* Build off of the Nonblocking Buffered reader code found here: http://www.ostack.cn/?qa=630328/
+*/
+
+
+
+
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.io.BufferedReader;

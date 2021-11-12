@@ -35,6 +35,8 @@ public class Worker {
 
     private boolean enemy;
 
+    public final int id;
+
     private class Target {
         public int x;
         public int y;
@@ -45,7 +47,7 @@ public class Worker {
         }
     }
 
-    public Worker(int xOff, int yOff, int scl, GameMap gm, boolean enemy) {
+    public Worker(int xOff, int yOff, int scl, GameMap gm, boolean enemy, int id) {
         this.gm = gm;
 
         this.posX = xOff;
@@ -57,6 +59,8 @@ public class Worker {
         this.scl = scl;
 
         this.enemy = enemy;
+
+        this.id = id;
     }
 
     public void display(Graphics2D g) {

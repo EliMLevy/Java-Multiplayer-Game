@@ -37,7 +37,7 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
     private boolean keyIsPressed = false;
 
     private Timer timer;
-    private final int DELAY = 25;
+    private final int DELAY = 50;
 
     private PrintWriter toServer;
     private NonblockingBufferedReader fromServerNonblocking;

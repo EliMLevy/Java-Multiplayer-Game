@@ -31,25 +31,14 @@
  */
 
 import java.net.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.io.*;
 
 public class MultiServer {
 
     // private static List<MultiServerThread> threads = new ArrayList<>();
-    private static MultiServerThread clientA;
-    private static MultiServerThread clientB;
+    private static Socket clientA;
+    private static Socket clientB;
 
-
-    public static List<StringBuffer> outgoingData = new ArrayList<>();
-    
-
-    private static Map<MultiServerThread, MultiServerThread> crossRoads = new HashMap<>();
-
-    private static int i = 0;
 
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
@@ -57,42 +46,80 @@ public class MultiServer {
             System.exit(1);
         }
 
-        
-        outgoingData.add(new StringBuffer());
-        outgoingData.add(new StringBuffer());
-        
+
+
         int portNumber = Integer.parseInt(args[0]);
         System.out.println("Listeing on port 3000");
 
         try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
             while (clientA == null || clientB == null) {
-                MultiServerThread mst = new MultiServerThread(serverSocket.accept());
-                mst.dataIndex = i++;
-                mst.start();
-                if(clientA == null) clientA = mst;
-                else clientB = mst;
+                // MultiServerThread mst = new MultiServerThread(serverSocket.accept());
+                Socket connectedClient = serverSocket.accept();
+                if (clientA == null)
+                    clientA = connectedClient;
+                else
+                    clientB = connectedClient;
             }
 
             System.out.println("Got two clients!");
 
-            crossRoads.put(clientA, clientB);
-            crossRoads.put(clientB, clientA);
+            new MultiServerSimpleThread(clientA, clientB).start();
+            new MultiServerSimpleThread(clientB, clientA).start();
+
+
+            // try (PrintWriter toClientA = new PrintWriter(clientA.getOutputStream(), true);
+            //         BufferedReader fromClientA = new BufferedReader(new InputStreamReader(clientA.getInputStream()));
+
+            //         PrintWriter toClientB = new PrintWriter(clientB.getOutputStream(), true);
+            //         BufferedReader fromClientB = new BufferedReader(new InputStreamReader(clientB.getInputStream()));
+
+            // ) {
+
+            //     toClientA.println("The game will begin now...");
+            //     toClientB.println("The game will begin now...");
+
+            //     String clientAIncoming;
+            //     String clientBIncoming;
+
+            //     boolean clientAClosed = false;
+            //     boolean clientBClosed = false;
+
+            //     while (true) {
+                    
+            //         System.out.println("pre");
+            //         clientAIncoming = fromClientA.readLine();
+            //         System.out.println("limbo");
+            //         clientBIncoming = fromClientB.readLine();
+            //         System.out.println("post");
+
+            //         if (clientAIncoming.equals("CLOSE"))
+            //             clientA.close();
+            //         if (clientBIncoming.equals("CLOSE"))
+            //             clientB.close();
+            //         if(clientAClosed && clientBClosed)
+            //             break;
+                    
+
+            //         if(clientAIncoming.length() > 0) {
+            //             System.out.println(clientAIncoming);
+            //             toClientB.println(clientAIncoming);
+            //         }
+
+            //         if(clientBIncoming.length() > 0) {
+            //             System.out.println(clientBIncoming);
+            //             toClientA.println(clientBIncoming);
+            //         }
+
+            //     }
+            // } catch (IOException e) {
+            //     e.printStackTrace();
+            // }
+
         } catch (IOException e) {
             System.err.println("Could not listen on port " + portNumber);
             System.exit(-1);
         }
     }
 
-    public static void sendData(MultiServerThread from, String data) {
-        System.out.println(from.id + ": " + data);
-        MultiServerThread target = MultiServer.crossRoads.get(from);
-        System.out.println(target.id + ": " + data);
-        outgoingData.get(from.dataIndex + 1 % 2).append(data);
-        outgoingData.get(from.dataIndex + 1 % 2).append("::");
-        // target.send(data);
-        // clientA.send(data);
-        // clientB.send(data);
-
-    }
 
 }

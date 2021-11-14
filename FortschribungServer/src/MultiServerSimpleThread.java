@@ -42,6 +42,8 @@ public class MultiServerSimpleThread extends Thread  {
                 }
             }
             this.src.close();
+        } catch (SocketException e) {
+            System.out.println("Client " + this.id + " disconnected...");
         } catch (IOException e) {
             e.printStackTrace();
         }

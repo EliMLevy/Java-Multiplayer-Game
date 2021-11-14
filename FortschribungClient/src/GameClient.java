@@ -10,7 +10,6 @@ import javax.swing.*;
 import javax.swing.event.MouseInputListener;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -24,24 +23,27 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
 
     private int width = 600;
     private int height = 600;
+
     private int mouseX, pMouseX = 0;
     private int mouseY, pMouseY = 0;
     private int absMouseX, absMouseY = 0;
+
     private int cameraOffSetX, cameraOffSetY = 0;
 
     private int key = -1;
     private Set<Integer> keypresses = new HashSet<>();
+    private boolean mouseIsPressed = false;
+    private boolean keyIsPressed = false;
 
     private GameMap gm = new GameMap(1800, 1800);
 
+    private int playerID;
     private List<Worker> workers = new ArrayList<>();
     private List<Worker> yourWorkers = new ArrayList<>();
     private Map<Integer, Worker> enemyWorkerIDs = new HashMap<>();
     private List<Worker> enemyWorkers = new ArrayList<>();
     private Worker selectedWorker;
 
-    private boolean mouseIsPressed = false;
-    private boolean keyIsPressed = false;
 
     private Timer timer;
     private final int DELAY = 50;
@@ -50,7 +52,6 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
     private NonblockingBufferedReader fromServerNonblocking;
     private StringBuffer pendingToServer = new StringBuffer();
 
-    private int playerID;
 
     GameClient(String hostName) {
 
@@ -67,9 +68,6 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
 
         timer = new Timer(DELAY, this);
         timer.start();
-
-        // @TODO The server need to generate the workers and tell both clients where
-        // they are
 
     }
 
@@ -115,6 +113,7 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
             BufferedReader fromServerStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
             this.playerID = Integer.parseInt(fromServerStream.readLine());
+            
             String yourWorkersRaw = fromServerStream.readLine();
             String enemyWorkersRaw = fromServerStream.readLine();
 
@@ -136,6 +135,20 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
 
                 enemyWorkerIDs.put(i, enemyWorker);
 
+            }
+
+            if(this.playerID == 1) {
+                gm.moveCamera(-1400, -1400);
+
+                for (Worker w : this.workers) {
+                    w.moveCamera(-1400, -1400);
+                }
+        
+                this.cameraOffSetX += 1400;
+                this.cameraOffSetY += 1400;
+        
+                this.absMouseX = this.mouseX + this.cameraOffSetX;
+                this.absMouseY = this.mouseY + this.cameraOffSetY;
             }
 
             this.fromServerNonblocking = new NonblockingBufferedReader(fromServerStream);

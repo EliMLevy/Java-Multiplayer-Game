@@ -10,9 +10,12 @@ import javax.swing.*;
 import javax.swing.event.MouseInputListener;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Set;
+import java.util.HashSet;
 
 import java.io.*;
 import java.net.*;
@@ -25,7 +28,9 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
     private int mouseY, pMouseY = 0;
     private int absMouseX, absMouseY = 0;
     private int cameraOffSetX, cameraOffSetY = 0;
+
     private int key = -1;
+    private Set<Integer> keypresses = new HashSet<>();
 
     private GameMap gm = new GameMap(1800, 1800);
 
@@ -63,8 +68,9 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
         timer = new Timer(DELAY, this);
         timer.start();
 
-        // @TODO The server need to generate the workers and tell both clients where they are 
-        
+        // @TODO The server need to generate the workers and tell both clients where
+        // they are
+
     }
 
     @Override
@@ -103,11 +109,10 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
         // String hostName = "localhost";
         int portNumber = 3000;
         try {
-            
+
             Socket socket = new Socket(hostName, portNumber);
             PrintWriter toServer = new PrintWriter(socket.getOutputStream(), true);
             BufferedReader fromServerStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
 
             this.playerID = Integer.parseInt(fromServerStream.readLine());
             String yourWorkersRaw = fromServerStream.readLine();
@@ -132,13 +137,9 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
                 enemyWorkerIDs.put(i, enemyWorker);
 
             }
-    
-            
-
 
             this.fromServerNonblocking = new NonblockingBufferedReader(fromServerStream);
             this.toServer = toServer;
-
 
         } catch (UnknownHostException e) {
             System.err.println("Don't know about host " + hostName);
@@ -152,7 +153,7 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
     }
 
     public static void main(String[] args) {
-        if(args.length != 1) {
+        if (args.length != 1) {
             System.out.println("Usage: GameClient <hostName>");
             return;
         }
@@ -179,10 +180,12 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
             // label.setText("Right Click!");
             if (key == 16) {
                 this.selectedWorker.addTargetToQueue(this.absMouseX, this.absMouseY);
-                this.pendingToServer.append("addTargetPos " + this.selectedWorker.id + " " + this.absMouseX + " " + this.absMouseY + " ");
+                this.pendingToServer.append(
+                        "addTargetPos " + this.selectedWorker.id + " " + this.absMouseX + " " + this.absMouseY + " ");
             } else {
                 this.selectedWorker.setTarget(this.absMouseX, this.absMouseY);
-                this.pendingToServer.append("targetPos " + this.selectedWorker.id + " " + this.absMouseX + " " + this.absMouseY + " ");
+                this.pendingToServer.append(
+                        "targetPos " + this.selectedWorker.id + " " + this.absMouseX + " " + this.absMouseY + " ");
             }
         }
 
@@ -235,11 +238,9 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
     @Override
     public void mouseMoved(MouseEvent e) {
 
-        
-        
         this.pMouseX = this.mouseX;
         this.pMouseY = this.mouseY;
-        
+
         this.mouseX = e.getX();
         this.mouseY = e.getY();
 
@@ -253,7 +254,7 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
         repaint();
         try {
             String incoming = this.fromServerNonblocking.readLine();
-            if(incoming != null)
+            if (incoming != null)
                 handleServerData(incoming);
         } catch (IOException error) {
             error.printStackTrace();
@@ -299,19 +300,37 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
 
     @Override
     public void keyTyped(KeyEvent e) {
-        // TODO Auto-generated method stub
 
+        if (this.keypresses.contains(88)) {
+
+            if (this.keypresses.contains(16)) {
+                this.selectedWorker.addTargetToQueue(this.absMouseX, this.absMouseY);
+                this.pendingToServer.append(
+                        "addTargetPos " + this.selectedWorker.id + " " + this.absMouseX + " " + this.absMouseY + " ");
+            } else {
+                this.selectedWorker.setTarget(this.absMouseX, this.absMouseY);
+                this.pendingToServer.append(
+                        "targetPos " + this.selectedWorker.id + " " + this.absMouseX + " " + this.absMouseY + " ");
+            }
+        }
     }
 
     @Override
     public void keyPressed(KeyEvent e) {
+
+        // if(this.key == 16 && e.getKeyCode() == 88) {
+
+        // }
         this.key = e.getKeyCode();
+        this.keypresses.add(e.getKeyCode());
+        // System.out.println(Arrays.toString(this.keypresses.toArray()));
 
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
         this.key = -1;
+        this.keypresses.removeIf(i -> (i == e.getKeyCode()));
     }
 
 }

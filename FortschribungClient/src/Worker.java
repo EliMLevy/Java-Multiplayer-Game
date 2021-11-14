@@ -1,15 +1,9 @@
 import java.awt.Graphics2D;
 
 import java.awt.*;
-import java.awt.event.*;
 import java.util.ArrayDeque;
 import java.util.Iterator;
 import java.util.Queue;
-
-
-import javax.swing.*;
-
-
 
 public class Worker {
 
@@ -121,19 +115,7 @@ public class Worker {
                 }
 
 
-                // if (this.target.x < this.posX && this.target.x < this.posX - this.speed
-                //         && gm.canMove(this.posX - this.speed, this.posY))
-                //     this.posX -= this.speed;
-                // if (this.target.x > this.posX && this.target.x > this.posX + this.speed
-                //         && gm.canMove(this.posX + this.speed, this.posY))
-                //     this.posX += this.speed;
 
-                // if (this.target.y < this.posY && this.target.y < this.posY - this.speed
-                //         && gm.canMove(this.posX, this.posY - this.speed))
-                //     this.posY -= this.speed;
-                // if (this.target.y > this.posY && this.target.y > this.posY + this.speed
-                //         && gm.canMove(this.posX, this.posY + this.speed))
-                //     this.posY += this.speed;
             }
         } else {
             if (!this.targetQueue.isEmpty())

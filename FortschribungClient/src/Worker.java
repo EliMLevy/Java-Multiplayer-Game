@@ -29,7 +29,7 @@ public class Worker {
 
     public int r = this.scl * 30;
 
-    private int speed = this.scl * 20;
+    private int speed = this.scl * 5;
 
     private boolean selected = false;
 
@@ -154,4 +154,6 @@ public class Worker {
     public double dist(int x1, int y1, int x2, int y2) {
         return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
     }
+
+
 }

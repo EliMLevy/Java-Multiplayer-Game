@@ -19,13 +19,13 @@ import java.net.*;
 
 public class GameClient extends JFrame implements MouseInputListener, ActionListener, KeyListener {
 
-    private int width = 600;
-    private int height = 600;
+    private int width = 900;
+    private int height = 900;
     private int mouseX, pMouseX = 0;
     private int mouseY, pMouseY = 0;
     private int key = -1;
 
-    private GameMap gm = new GameMap(1800, 1800);
+    private GameMap gm = new GameMap(900, 900);
 
     private List<Worker> workers = new ArrayList<>();
     private List<Worker> yourWorkers = new ArrayList<>();
@@ -177,8 +177,10 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
             // label.setText("Right Click!");
             if (key == 16) {
                 this.selectedWorker.addTargetToQueue(this.mouseX, this.mouseY);
+                this.pendingToServer.append("addTargetPos " + this.selectedWorker.id + " " + this.mouseX + " " + this.mouseY + " ");
             } else {
                 this.selectedWorker.setTarget(this.mouseX, this.mouseY);
+                this.pendingToServer.append("targetPos " + this.selectedWorker.id + " " + this.mouseX + " " + this.mouseY + " ");
             }
         }
 
@@ -247,17 +249,24 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
     }
 
     public void handleServerData(String data) {
+        System.out.println(data);
         String[] parsedMsgs = data.split(" ");
+
         for (int i = 0; i < parsedMsgs.length; i++) {
+            int x, y;
             switch (parsedMsgs[i]) {
             case "targetPos": // targetPos <worker id> <posX> <posY>
-
+                x = Integer.parseInt(parsedMsgs[i + 2]);
+                y = Integer.parseInt(parsedMsgs[i + 3]);
+                this.enemyWorkerIDs.get(Integer.parseInt(parsedMsgs[i + 1])).setTarget(x, y);
                 break;
             case "targetObj": // targetObj <worker id> <objID>
                 break;
 
             case "addTargetPos": // addTargetPos <worker id> <posX> <posY>
-
+                x = Integer.parseInt(parsedMsgs[i + 2]);
+                y = Integer.parseInt(parsedMsgs[i + 3]);
+                this.enemyWorkerIDs.get(Integer.parseInt(parsedMsgs[i + 1])).addTargetToQueue(x, y);
                 break;
             case "addTargetObj": // addTargetObj <worker id> <objID>
 

@@ -19,13 +19,15 @@ import java.net.*;
 
 public class GameClient extends JFrame implements MouseInputListener, ActionListener, KeyListener {
 
-    private int width = 900;
-    private int height = 900;
+    private int width = 600;
+    private int height = 600;
     private int mouseX, pMouseX = 0;
     private int mouseY, pMouseY = 0;
+    private int absMouseX, absMouseY = 0;
+    private int cameraOffSetX, cameraOffSetY = 0;
     private int key = -1;
 
-    private GameMap gm = new GameMap(900, 900);
+    private GameMap gm = new GameMap(1800, 1800);
 
     private List<Worker> workers = new ArrayList<>();
     private List<Worker> yourWorkers = new ArrayList<>();
@@ -176,11 +178,11 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
         if (e.getButton() == MouseEvent.BUTTON3) {
             // label.setText("Right Click!");
             if (key == 16) {
-                this.selectedWorker.addTargetToQueue(this.mouseX, this.mouseY);
-                this.pendingToServer.append("addTargetPos " + this.selectedWorker.id + " " + this.mouseX + " " + this.mouseY + " ");
+                this.selectedWorker.addTargetToQueue(this.absMouseX, this.absMouseY);
+                this.pendingToServer.append("addTargetPos " + this.selectedWorker.id + " " + this.absMouseX + " " + this.absMouseY + " ");
             } else {
-                this.selectedWorker.setTarget(this.mouseX, this.mouseY);
-                this.pendingToServer.append("targetPos " + this.selectedWorker.id + " " + this.mouseX + " " + this.mouseY + " ");
+                this.selectedWorker.setTarget(this.absMouseX, this.absMouseY);
+                this.pendingToServer.append("targetPos " + this.selectedWorker.id + " " + this.absMouseX + " " + this.absMouseY + " ");
             }
         }
 
@@ -212,9 +214,17 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
     @Override
     public void mouseDragged(MouseEvent e) {
         gm.moveCamera(this.mouseX - this.pMouseX, this.mouseY - this.pMouseY);
+
         for (Worker w : this.workers) {
             w.moveCamera(this.mouseX - this.pMouseX, this.mouseY - this.pMouseY);
         }
+
+        this.cameraOffSetX += this.pMouseX - this.mouseX;
+        this.cameraOffSetY += this.pMouseY - this.mouseY;
+
+        this.absMouseX = this.mouseX + this.cameraOffSetX;
+        this.absMouseY = this.mouseY + this.cameraOffSetY;
+
         this.pMouseX = this.mouseX;
         this.pMouseY = this.mouseY;
 
@@ -224,11 +234,17 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
 
     @Override
     public void mouseMoved(MouseEvent e) {
+
+        
+        
         this.pMouseX = this.mouseX;
         this.pMouseY = this.mouseY;
-
+        
         this.mouseX = e.getX();
         this.mouseY = e.getY();
+
+        this.absMouseX = this.mouseX + this.cameraOffSetX;
+        this.absMouseY = this.mouseY + this.cameraOffSetY;
 
     }
 

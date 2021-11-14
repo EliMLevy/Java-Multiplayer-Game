@@ -71,9 +71,9 @@ public class GameMap {
         this.yOff += y;
     }
 
-    public boolean canMove(int endX, int endY) {
-        int row = endY / (this.height / this.blueprint.length);
-        int col = endX / (this.width / this.blueprint[0].length);
+    public boolean canMove(double endX, double endY) {
+        int row = (int)(endY / (this.height / this.blueprint.length));
+        int col = (int)(endX / (this.width / this.blueprint[0].length));
 
         if(this.blueprint[row][col] == 0) return true;
         else return false;

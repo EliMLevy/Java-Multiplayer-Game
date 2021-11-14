@@ -6,6 +6,7 @@ import java.util.ArrayDeque;
 import java.util.Iterator;
 import java.util.Queue;
 
+
 import javax.swing.*;
 
 
@@ -100,19 +101,39 @@ public class Worker {
                 else
                     this.target = this.targetQueue.remove();
             } else {
-                if (this.target.x < this.posX && this.target.x < this.posX - this.speed
-                        && gm.canMove(this.posX - this.speed, this.posY))
-                    this.posX -= this.speed;
-                if (this.target.x > this.posX && this.target.x > this.posX + this.speed
-                        && gm.canMove(this.posX + this.speed, this.posY))
-                    this.posX += this.speed;
+                int vecX = this.target.x - this.posX;
+                int vecY = this.target.y - this.posY;
 
-                if (this.target.y < this.posY && this.target.y < this.posY - this.speed
-                        && gm.canMove(this.posX, this.posY - this.speed))
-                    this.posY -= this.speed;
-                if (this.target.y > this.posY && this.target.y > this.posY + this.speed
-                        && gm.canMove(this.posX, this.posY + this.speed))
-                    this.posY += this.speed;
+                double mag = Math.sqrt(Math.pow(vecX, 2) + Math.pow(vecY, 2));
+
+                double normVecX = vecX / mag;
+                double normVecY = vecY / mag;
+
+            
+                if(mag > this.speed) {
+                    if(gm.canMove(this.posX + normVecX * this.speed, this.posY + normVecY * this.speed)) {
+                        this.posX += normVecX * this.speed;
+                        this.posY += normVecY * this.speed;
+                    }
+                } else if(gm.canMove(this.target.x, this.target.y)) {
+                    this.posX = this.target.x;
+                    this.posY = this.target.y;
+                }
+
+
+                // if (this.target.x < this.posX && this.target.x < this.posX - this.speed
+                //         && gm.canMove(this.posX - this.speed, this.posY))
+                //     this.posX -= this.speed;
+                // if (this.target.x > this.posX && this.target.x > this.posX + this.speed
+                //         && gm.canMove(this.posX + this.speed, this.posY))
+                //     this.posX += this.speed;
+
+                // if (this.target.y < this.posY && this.target.y < this.posY - this.speed
+                //         && gm.canMove(this.posX, this.posY - this.speed))
+                //     this.posY -= this.speed;
+                // if (this.target.y > this.posY && this.target.y > this.posY + this.speed
+                //         && gm.canMove(this.posX, this.posY + this.speed))
+                //     this.posY += this.speed;
             }
         } else {
             if (!this.targetQueue.isEmpty())
@@ -143,12 +164,12 @@ public class Worker {
     }
 
     public void setTarget(int x, int y) {
-        this.target = new Target(x - this.xOff, y - this.yOff);
+        this.target = new Target(x, y);
         this.targetQueue.clear();
     }
 
     public void addTargetToQueue(int x, int y) {
-        this.targetQueue.add(new Target(x - this.xOff, y - this.yOff));
+        this.targetQueue.add(new Target(x, y));
     }
 
     public double dist(int x1, int y1, int x2, int y2) {

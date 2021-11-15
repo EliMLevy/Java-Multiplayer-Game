@@ -30,9 +30,6 @@ public class GameMap {
     private int width;
     private int height;
 
-    private int xOff = 0;
-    private int yOff = 0;
-
     public GameMap(int[][] blueprint, int width, int height) {
         this.blueprint = blueprint;
         this.width = width;
@@ -45,7 +42,7 @@ public class GameMap {
     }
 
 
-    public void display(Graphics2D g) {
+    public void display(Graphics2D g, int offSetX, int offSetY) {
         for(int i = 0; i < this.blueprint.length; i ++) {
             for(int j = 0; j < this.blueprint[i].length; j++) {
                 if(this.blueprint[i][j] == 0) {
@@ -55,18 +52,13 @@ public class GameMap {
                 }
                 int w = this.width / this.blueprint[i].length;
                 int h = this.height / this.blueprint.length;
-                int x = j * w + xOff;
-                int y = i * h + yOff;
+                int x = j * w - offSetX;
+                int y = i * h - offSetY;
                 g.fillRect(x,y,w,h);
             }
         }
     } 
 
-
-    public void moveCamera(int x, int y) {
-        this.xOff += x;
-        this.yOff += y;
-    }
 
     public boolean canMove(double endX, double endY) {
         int row = (int)(endY / (this.height / this.blueprint.length));

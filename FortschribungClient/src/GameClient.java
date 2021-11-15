@@ -27,13 +27,11 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
     private int mouseX, pMouseX = 0;
     private int mouseY, pMouseY = 0;
     private int absMouseX, absMouseY = 0;
-
     private int cameraOffSetX, cameraOffSetY = 0;
+    private GameObject mouseHovering;
 
     private int key = -1;
     private Set<Integer> keypresses = new HashSet<>();
-    private boolean mouseIsPressed = false;
-    private boolean keyIsPressed = false;
 
     private GameMap gm = new GameMap(1800, 1800);
 
@@ -41,9 +39,11 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
     private List<Worker> workers = new ArrayList<>();
     private List<Worker> yourWorkers = new ArrayList<>();
     private Map<Integer, Worker> enemyWorkerIDs = new HashMap<>();
-    private List<Worker> enemyWorkers = new ArrayList<>();
+    private Map<Integer, GameObject> gameObjectIDs = new HashMap<>();
     private Worker selectedWorker;
 
+    private List<GameObject> gameObjects = new ArrayList<>();
+    private List<Worker> enemyWorkers = new ArrayList<>();
 
     private Timer timer;
     private final int DELAY = 50;
@@ -51,7 +51,6 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
     private PrintWriter toServer;
     private NonblockingBufferedReader fromServerNonblocking;
     private StringBuffer pendingToServer = new StringBuffer();
-
 
     GameClient(String hostName) {
 
@@ -63,6 +62,10 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
         setLayout(null);
         setVisible(true);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+        GameObject gen = new Generator(300, 200, 10, 1, this.gm);
+        this.gameObjects.add(gen);
+        this.gameObjectIDs.put(1, gen);
 
         openSocket(hostName);
 
@@ -82,9 +85,12 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
         g2d.setColor(new Color(0, 0, 0));
         g2d.fillRect(0, 0, this.width, this.height);
 
-        gm.display(g2d);
+        gm.display(g2d, this.cameraOffSetX, this.cameraOffSetY);
         for (Worker w : this.workers) {
-            w.display(g2d);
+            w.display(g2d, this.cameraOffSetX, this.cameraOffSetY);
+        }
+        for (GameObject obj : this.gameObjects) {
+            obj.display(g2d, this.cameraOffSetX, this.cameraOffSetY);
         }
 
         Graphics2D g2dComponent = (Graphics2D) g;
@@ -113,7 +119,7 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
             BufferedReader fromServerStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
             this.playerID = Integer.parseInt(fromServerStream.readLine());
-            
+
             String yourWorkersRaw = fromServerStream.readLine();
             String enemyWorkersRaw = fromServerStream.readLine();
 
@@ -137,16 +143,10 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
 
             }
 
-            if(this.playerID == 1) {
-                gm.moveCamera(-1400, -1400);
-
-                for (Worker w : this.workers) {
-                    w.moveCamera(-1400, -1400);
-                }
-        
+            if (this.playerID == 1) {
                 this.cameraOffSetX += 1400;
                 this.cameraOffSetY += 1400;
-        
+
                 this.absMouseX = this.mouseX + this.cameraOffSetX;
                 this.absMouseY = this.mouseY + this.cameraOffSetY;
             }
@@ -178,7 +178,7 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
         if (e.getButton() == MouseEvent.BUTTON1) {
             // label.setText("Left Click!");
             for (Worker w : this.yourWorkers) {
-                if (dist(mouseX, mouseY, w.absolutePosX, w.absolutePosY) < w.r / 2) {
+                if (dist(this.cameraOffSetX + mouseX, this.cameraOffSetY + mouseY, w.pos.x, w.pos.y) < w.r / 2) {
                     if (this.selectedWorker != null)
                         this.selectedWorker.toggleSelected();
                     w.toggleSelected();
@@ -191,14 +191,28 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
         }
         if (e.getButton() == MouseEvent.BUTTON3) {
             // label.setText("Right Click!");
-            if (key == 16) {
-                this.selectedWorker.addTargetToQueue(this.absMouseX, this.absMouseY);
-                this.pendingToServer.append(
-                        "addTargetPos " + this.selectedWorker.id + " " + this.absMouseX + " " + this.absMouseY + " ");
+
+            if (this.mouseHovering != null) {
+                if (this.key == 16) {
+                    this.selectedWorker.addObjectToQueue(this.mouseHovering);
+                    this.pendingToServer
+                            .append("addTargetObj " + this.selectedWorker.id + " " + this.mouseHovering.id + " ");
+                } else {
+                    this.selectedWorker.setTarget(this.mouseHovering);
+                    this.pendingToServer
+                            .append("setTargetObj " + this.selectedWorker.id + " " + this.mouseHovering.id + " ");
+                }
             } else {
-                this.selectedWorker.setTarget(this.absMouseX, this.absMouseY);
-                this.pendingToServer.append(
-                        "targetPos " + this.selectedWorker.id + " " + this.absMouseX + " " + this.absMouseY + " ");
+
+                if (key == 16) {
+                    this.selectedWorker.addTargetToQueue(this.absMouseX, this.absMouseY);
+                    this.pendingToServer.append("addTargetPos " + this.selectedWorker.id + " " + this.absMouseX + " "
+                            + this.absMouseY + " ");
+                } else {
+                    this.selectedWorker.setTarget(this.absMouseX, this.absMouseY);
+                    this.pendingToServer.append(
+                            "targetPos " + this.selectedWorker.id + " " + this.absMouseX + " " + this.absMouseY + " ");
+                }
             }
         }
 
@@ -207,12 +221,10 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
     @Override
     public void mousePressed(MouseEvent e) {
 
-        this.mouseIsPressed = true;
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        this.mouseIsPressed = false;
     }
 
     @Override
@@ -229,11 +241,6 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
 
     @Override
     public void mouseDragged(MouseEvent e) {
-        gm.moveCamera(this.mouseX - this.pMouseX, this.mouseY - this.pMouseY);
-
-        for (Worker w : this.workers) {
-            w.moveCamera(this.mouseX - this.pMouseX, this.mouseY - this.pMouseY);
-        }
 
         this.cameraOffSetX += this.pMouseX - this.mouseX;
         this.cameraOffSetY += this.pMouseY - this.mouseY;
@@ -251,6 +258,18 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
     @Override
     public void mouseMoved(MouseEvent e) {
 
+        this.mouseHovering = null;
+        for (GameObject obj : this.gameObjects) {
+            obj.hovering = false;
+
+            double d = dist(this.cameraOffSetX + this.mouseX, this.cameraOffSetY + this.mouseY, (int) obj.pos.x,
+                    (int) obj.pos.y);
+
+            if (d < obj.r / 2) {
+                this.mouseHovering = obj;
+                obj.hovering = true;
+            }
+        }
         this.pMouseX = this.mouseX;
         this.pMouseY = this.mouseY;
 
@@ -307,36 +326,47 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
         }
     }
 
-    public double dist(int x1, int y1, int x2, int y2) {
+    public double dist(float x1, float y1, float x2, float y2) {
         return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
+    }
+
+    public static double linearMap(double val, double start, double end, double a, double b) {
+        return a + ((b - a) / (end - start)) * (val - start);
+
     }
 
     @Override
     public void keyTyped(KeyEvent e) {
 
         if (this.keypresses.contains(88)) {
-
-            if (this.keypresses.contains(16)) {
-                this.selectedWorker.addTargetToQueue(this.absMouseX, this.absMouseY);
-                this.pendingToServer.append(
-                        "addTargetPos " + this.selectedWorker.id + " " + this.absMouseX + " " + this.absMouseY + " ");
+            if (this.mouseHovering != null) {
+                if (this.keypresses.contains(16)) {
+                    this.selectedWorker.addObjectToQueue(this.mouseHovering);
+                    this.pendingToServer
+                            .append("addTargetObj " + this.selectedWorker.id + " " + this.mouseHovering.id + " ");
+                } else {
+                    this.selectedWorker.setTarget(this.mouseHovering);
+                    this.pendingToServer
+                            .append("targetObj " + this.selectedWorker.id + " " + this.mouseHovering.id + " ");
+                }
             } else {
-                this.selectedWorker.setTarget(this.absMouseX, this.absMouseY);
-                this.pendingToServer.append(
-                        "targetPos " + this.selectedWorker.id + " " + this.absMouseX + " " + this.absMouseY + " ");
+                if (this.keypresses.contains(16)) {
+                    this.selectedWorker.addTargetToQueue(this.absMouseX, this.absMouseY);
+                    this.pendingToServer.append("addTargetPos " + this.selectedWorker.id + " " + this.absMouseX + " "
+                            + this.absMouseY + " ");
+                } else {
+                    this.selectedWorker.setTarget(this.absMouseX, this.absMouseY);
+                    this.pendingToServer.append(
+                            "targetPos " + this.selectedWorker.id + " " + this.absMouseX + " " + this.absMouseY + " ");
+                }
             }
         }
     }
 
     @Override
     public void keyPressed(KeyEvent e) {
-
-        // if(this.key == 16 && e.getKeyCode() == 88) {
-
-        // }
         this.key = e.getKeyCode();
         this.keypresses.add(e.getKeyCode());
-        // System.out.println(Arrays.toString(this.keypresses.toArray()));
 
     }
 
@@ -345,5 +375,8 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
         this.key = -1;
         this.keypresses.removeIf(i -> (i == e.getKeyCode()));
     }
+
+
+
 
 }

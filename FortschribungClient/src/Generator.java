@@ -6,14 +6,18 @@ public class Generator extends GameObject {
 
     private long timeStarted = -1;
     private Worker operator;
-    private GameMap gm;
+    private GameClient client;
+
+    private Vector2D rallyPoint;
 
 
 
-    public Generator(int x, int y, int scl, int id, GameMap gm) {
+    public Generator(int x, int y, int scl, int id, GameClient client) {
         super(x, y, scl, id);
-        this.gm = gm;
+        this.client = client;
         this.r = this.scl * 4;
+
+        this.rallyPoint = new Vector2D(this.x - this.r * 2, this.y);
     }
 
 
@@ -45,6 +49,7 @@ public class Generator extends GameObject {
             g2d.fillArc((int)x - this.r / 2, (int)y - this.r / 2, this.r, this.r , 0, angle);
             if(angle > 360) {
                 this.timeStarted = System.currentTimeMillis();
+                this.client.workerGenerated((int)this.pos.x, (int)this.pos.y, (int)this.rallyPoint.x, (int)this.rallyPoint.y, false);
             }
         }
 

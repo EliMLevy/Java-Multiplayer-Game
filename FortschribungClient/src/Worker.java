@@ -115,6 +115,7 @@ public class Worker {
     public void setTarget(int x, int y) {
         if(this.generating != null) {
             this.generating.stop();
+            this.generating = null;
         }
         this.target = new Target(x, y);
         this.targetQueue.clear();
@@ -123,6 +124,7 @@ public class Worker {
     public void addTargetToQueue(int x, int y) {
         if(this.generating != null) {
             this.generating.stop();
+            this.generating = null;
         }
         this.targetQueue.add(new Target(x, y));
     }
@@ -132,11 +134,14 @@ public class Worker {
             this.generating.stop();
         }
         this.target = obj;
+        this.targetQueue.clear();
+
     }
 
     public void addObjectToQueue(GameObject obj) {
         if(this.generating != null) {
             this.generating.stop();
+            this.generating = null;
         }
         this.targetQueue.add(obj);
     }

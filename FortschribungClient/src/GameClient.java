@@ -63,9 +63,12 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
         setVisible(true);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        GameObject gen = new Generator(300, 200, 10, 1, this.gm);
+        GameObject gen = new Generator(300, 200, 10, 1, this);
+        GameObject gen2 = new Generator(1400, 1400, 10, 2, this);
         this.gameObjects.add(gen);
         this.gameObjectIDs.put(1, gen);
+        this.gameObjects.add(gen2);
+        this.gameObjectIDs.put(2, gen2);
 
         openSocket(hostName);
 
@@ -128,18 +131,20 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
             for (int i = 0; i < yourWorkersParsed.length - 2; i += 3) {
                 int x1 = Integer.parseInt(yourWorkersParsed[i + 1]);
                 int y1 = Integer.parseInt(yourWorkersParsed[i + 2]);
-                Worker yourWorker = new Worker(x1, y1, 3, gm, false, i);
+                Worker yourWorker = new Worker(x1, y1, 3, gm, false, i / 3);
 
                 int x2 = Integer.parseInt(enemyWorkersParsed[i + 1]);
                 int y2 = Integer.parseInt(enemyWorkersParsed[i + 2]);
-                Worker enemyWorker = new Worker(x2, y2, 3, gm, true, i);
+                System.out.println("initializing with worker id " + (i / 3));
+                Worker enemyWorker = new Worker(x2, y2, 3, gm, true, i / 3);
 
                 workers.add(yourWorker);
                 workers.add(enemyWorker);
 
                 yourWorkers.add(yourWorker);
-
-                enemyWorkerIDs.put(i, enemyWorker);
+                
+                this.enemyWorkers.add(enemyWorker);
+                enemyWorkerIDs.put(i / 3, enemyWorker);
 
             }
 
@@ -308,6 +313,7 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
                 x = Integer.parseInt(parsedMsgs[i + 2]);
                 y = Integer.parseInt(parsedMsgs[i + 3]);
                 this.enemyWorkerIDs.get(Integer.parseInt(parsedMsgs[i + 1])).setTarget(x, y);
+                i += 3;
                 break;
             case "targetObj": // targetObj <worker id> <objID>
                 break;
@@ -316,9 +322,15 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
                 x = Integer.parseInt(parsedMsgs[i + 2]);
                 y = Integer.parseInt(parsedMsgs[i + 3]);
                 this.enemyWorkerIDs.get(Integer.parseInt(parsedMsgs[i + 1])).addTargetToQueue(x, y);
+                i += 3;
                 break;
             case "addTargetObj": // addTargetObj <worker id> <objID>
 
+                break;
+            case "newWorker":
+                this.workerGenerated(Integer.parseInt(parsedMsgs[i + 1]), Integer.parseInt(parsedMsgs[i + 2]),
+                        Integer.parseInt(parsedMsgs[i + 3]), Integer.parseInt(parsedMsgs[i + 4]), true);
+                i += 4;
                 break;
             default:
                 break;
@@ -376,7 +388,24 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
         this.keypresses.removeIf(i -> (i == e.getKeyCode()));
     }
 
+    public void workerGenerated(int x, int y, int targetX, int targetY, boolean enemy) {
+        if (enemy) {
+            int id = this.enemyWorkers.size();
+            Worker newWorker = new Worker(x, y, 3, this.gm, enemy, id);
+            newWorker.setTarget(targetX, targetY);
+            System.out.println("putting new worker with id " + id);
+            enemyWorkerIDs.put(id, newWorker);
+            this.workers.add(newWorker);
+            this.enemyWorkers.add(newWorker);
 
-
+        } else {
+            int id = this.yourWorkers.size();
+            Worker newWorker = new Worker(x, y, 3, this.gm, enemy, id );
+            newWorker.setTarget(targetX, targetY);
+            this.yourWorkers.add(newWorker);
+            this.workers.add(newWorker);
+            this.pendingToServer.append("newWorker " + x + " " + y + " " + targetX + " " + targetY + " " + id);
+        }
+    }
 
 }

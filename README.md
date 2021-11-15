@@ -2,6 +2,28 @@ Hi there,
 
 This project is still in its early stages of development. (This readme is also in early stages so please excuse the tpyos...) 
 
+## How to run the game:
+
+Clone the repository:
+```
+git clone https://github.com/EliMLevy/Java-Multiplayer-Game.git
+```
+Change into the output directory:
+```
+cd Java-Multiplayer-Game/Fortschribung/FortschribungClient/bin
+```
+Compile the source code:
+```
+javac -d . ..\src\*.java
+```
+Run the game client and connect to a server:
+```
+java GameClient <Server IP address>
+```
+For testing purposes I have a server running at 159.223.153.157. Feel free to try out the game there.
+
+
+
 ## Here's what We have so far:
 
 Server:

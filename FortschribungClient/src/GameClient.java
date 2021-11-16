@@ -58,7 +58,7 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
         addKeyListener(this);
         addMouseListener(this);
 
-        setSize(600, 600);
+        setSize(1020, 780);
         setLayout(null);
         setVisible(true);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -100,18 +100,6 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
         g2dComponent.drawImage(bufferedImage, null, 0, 0);
     }
 
-    public void displayMenu() {
-        Graphics2D g = (Graphics2D) getGraphics();
-
-        g.setColor(new Color(100, 100, 100));
-        g.fillRect(0, 0, this.width, this.height);
-
-        Button b = new Button((int) (this.width * 0.25), (int) (this.height * 0.8), (int) (this.width * 0.5),
-                (int) (this.height * 0.1));
-        b.watch(this.mouseX, this.mouseY);
-        b.display(g);
-    }
-
     public void openSocket(String hostName) {
         // String hostName = "localhost";
         int portNumber = 3000;
@@ -149,8 +137,8 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
             }
 
             if (this.playerID == 1) {
-                this.cameraOffSetX += 1400;
-                this.cameraOffSetY += 1400;
+                this.cameraOffSetX += 1200;
+                this.cameraOffSetY += 1200;
 
                 this.absMouseX = this.mouseX + this.cameraOffSetX;
                 this.absMouseY = this.mouseY + this.cameraOffSetY;
@@ -176,6 +164,7 @@ public class GameClient extends JFrame implements MouseInputListener, ActionList
             return;
         }
         new GameClient(args[0]);
+        System.out.println("end of main");
     }
 
     @Override

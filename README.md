@@ -8,8 +8,9 @@ Clone the repository:
 ```
 git clone https://github.com/EliMLevy/Java-Multiplayer-Game.git
 ```
-Change into the output directory:
+Make and change into the output directory:
 ```
+mkdir Java-Multiplayer-Game/Fortschribung/FortschribungClient/bin
 cd Java-Multiplayer-Game/Fortschribung/FortschribungClient/bin
 ```
 Compile the source code:

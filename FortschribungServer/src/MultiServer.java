@@ -21,36 +21,42 @@ public class MultiServer {
 
         int portNumber = Integer.parseInt(args[0]);
         System.out.println("Listeing on port 3000");
-        while(true) {
+        while (true) {
             clientA = null;
             clientB = null;
             try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
                 while (clientA == null || clientB == null) {
                     // MultiServerThread mst = new MultiServerThread(serverSocket.accept());
                     Socket connectedClient = serverSocket.accept();
-                    if (clientA == null)
+                    if (clientA == null) {
                         clientA = connectedClient;
-                    else
+                        System.out.println("Client A connected");
+                    } else {
                         clientB = connectedClient;
-                }
-    
-                System.out.println("Got two clients!");
-    
-                GameState gameState = new GameState();
-    
-                for (int i = 0; i < 5; i++) {
-                    double x = (Math.random() * 100 + 150);
-                    double y = (Math.random() * 100 + 150);
+                        System.out.println("Client B connected");
 
-                    gameState.addWorker('A', i, x, y);
-                    gameState.addWorker('B', i, (x + 1400), (y + 1400));
+                    }
                 }
-    
+
+                System.out.println("Got two clients!");
+
+                GameState gameState = new GameState();
+
+                for (int i = 0; i < 1; i++) {
+                    double x = (Math.random() * (64 * 3 - 70) + 70);
+                    double y = (Math.random() * (400 - 298) + 298);
+
+                    // MathUtils.random(70, 64 * 3), MathUtils.random(298, 400)
+
+                    gameState.addWorker('A', i, x, y, x, y);
+                    gameState.addWorker('B', i, (x + 10), (y + 10), x, y);
+                }
+
                 MultiServerSimpleThread msstA = new MultiServerSimpleThread(clientA, clientB, 0, gameState);
                 MultiServerSimpleThread msstB = new MultiServerSimpleThread(clientB, clientA, 1, gameState);
                 msstA.start();
                 msstB.start();
-    
+
             } catch (IOException e) {
                 System.err.println("Could not listen on port " + portNumber);
                 System.exit(-1);

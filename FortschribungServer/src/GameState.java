@@ -1,8 +1,6 @@
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
-import java.util.HashSet;
 
 public class GameState {
     public Map<Integer, Worker> clientAWorkers = new HashMap<>();
@@ -11,10 +9,34 @@ public class GameState {
     public Map<Integer, Bullet> clientABullets = new HashMap<>();
     public Map<Integer, Bullet> clientBBullets = new HashMap<>();
 
-    public enum Mod {
-        NONE, GENERATING, WEAPONRIED
-    };
+    public StringBuffer clientAEvents = new StringBuffer();
+    public StringBuffer clientBEvents = new StringBuffer();
 
+    public int mapRows = 20;
+    public int mapCols = 20;
+    public String[] gameMap = {  
+     "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1",
+     "1", "0", "0", "1", "1", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "1",
+     "1", "0", "0", "0", "0", "0", "1", "0", "0", "1", "0", "1", "0", "1", "1", "1", "1", "1", "0", "1",
+     "1", "1", "1", "1", "1", "0", "1", "1", "1", "1", "0", "1", "0", "1", "0", "0", "0", "1", "0", "1",
+     "1", "1", "1", "1", "0", "0", "0", "1", "1", "0", "0", "1", "0", "0", "0", "1", "0", "1", "0", "1",
+     "1", "0", "0", "1", "1", "1", "0", "0", "1", "0", "1", "1", "0", "1", "1", "1", "0", "1", "0", "1",
+     "1", "0", "0", "0", "0", "1", "1", "0", "0", "0", "0", "0", "0", "0", "0", "1", "0", "1", "0", "1",
+     "1", "0", "1", "1", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "1", "1", "1", "0", "1",
+     "1", "0", "1", "0", "0", "1", "1", "0", "0", "0", "1", "0", "1", "0", "0", "0", "0", "0", "0", "1",
+     "1", "0", "1", "1", "0", "0", "1", "0", "0", "0", "0", "0", "0", "0", "0", "1", "0", "1", "1", "1",
+     "1", "0", "0", "1", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "1", "0", "0", "0", "1",
+     "1", "1", "0", "1", "1", "0", "0", "1", "0", "1", "1", "1", "1", "1", "0", "1", "0", "1", "0", "1",
+     "1", "1", "0", "0", "1", "1", "0", "1", "0", "1", "0", "0", "0", "1", "0", "0", "0", "1", "0", "1",
+     "1", "1", "1", "0", "0", "1", "1", "1", "0", "1", "0", "0", "0", "1", "1", "1", "0", "1", "1", "1",
+     "1", "1", "1", "1", "0", "0", "0", "0", "0", "1", "0", "0", "0", "1", "0", "0", "0", "0", "0", "1",
+     "1", "0", "0", "0", "0", "1", "0", "1", "1", "1", "1", "0", "1", "1", "0", "0", "1", "1", "0", "1",
+     "1", "0", "1", "1", "0", "1", "0", "0", "1", "0", "1", "0", "1", "0", "0", "1", "1", "0", "0", "1",
+     "1", "0", "1", "1", "0", "1", "1", "1", "1", "0", "1", "0", "1", "0", "0", "1", "0", "0", "0", "1",
+     "1", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "1",
+     "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1" };
+
+ 
     private class Target {
         public float x, y;
 
@@ -26,34 +48,30 @@ public class GameState {
 
     private class Worker {
         public int id;
-        public Double x, y;
-        public Mod modifier = Mod.NONE;
+        public double x, y;
         public Queue<Target> path;
 
-        public Worker(int id, Double x, Double y) {
+        public Worker(int id, double x, double y) {
             this.id = id;
             this.x = x;
             this.y = y;
         }
 
-        public void setPos(Double x, Double y) {
+        public void setPos(double x, double y) {
             this.x = x;
             this.y = y;
         }
 
-        public void setModifier(Mod modifier) {
-            this.modifier = modifier;
-        }
 
         public String toString() {
-            return this.id + " " + this.x + " " + this.y + " " + this.modifier;
+            return this.id + " " + this.x + " " + this.y;
         }
     }
 
     private class Bullet {
-        public Double x, y, vx, vy;
+        public double x, y, vx, vy;
 
-        public Bullet(Double x, Double y) {
+        public Bullet(double x, double y) {
             this.x = x;
             this.y = y;
         }
@@ -63,19 +81,43 @@ public class GameState {
 
     }
 
-    public void addWorker(char client, int id, Double x, Double y) {
-        Worker temp = new Worker(id, x, y);
-        if (client == 'A')
-            this.clientAWorkers.put(id, temp);
-        else if (client == 'B')
-            this.clientBWorkers.put(id, temp);
+    public String serializeMap() {
+        return String.join(" ", gameMap);
     }
 
-    public void updateWorker(char client, int id, Double x, Double y) {
+    public String serializeGameObjects() {
+        // gameObjects.add(new Generator(200, 350));
+        // gameObjects.add(new Weaponry(300, 350));
+        return "generator 0 200 350 weaponry 1 300 350";
+    }
+
+    public void addWorker(char client,int id, double x, double y, double targetX, double targetY) {
         if (client == 'A') {
-            this.clientAWorkers.get(id).setPos(x, y);
+            this.clientAWorkers.put(id, new Worker(id, x, y));
+            this.clientAEvents.append("newWorker 0 " + id + " " + x + " " + y + " " + targetX + " " +  targetY);
+        } else {
+            this.clientBWorkers.put(id, new Worker(id, x, y));
+            this.clientBEvents.append("newWorker 1 " + id + " " + x + " " + y + " " + targetX + " " +  targetY);
+
+        }
+    }
+
+    public void updateWorker(char client, int id, double x, double y) {
+        if (client == 'A') {
+            if(this.clientAWorkers.containsKey(id)) {
+                this.clientAWorkers.get(id).setPos(x, y);
+            } else {
+                // addWorker(client, x, y);
+                System.out.println("WORKER NOT FOUND");
+
+            }
         } else if (client == 'B') {
-            this.clientBWorkers.get(id).setPos(x, y);
+            if(this.clientBWorkers.containsKey(id)) {
+                this.clientBWorkers.get(id).setPos(x, y);
+            } else {
+                System.out.println("WORKER NOT FOUND");
+                // addWorker(client, x, y);
+            }
         }
     }
 
@@ -93,6 +135,10 @@ public class GameState {
                 buffer.append(b.toString());
                 buffer.append(" ");
             }
+            if(this.clientAEvents.length() > 0) {
+                buffer.append(this.clientAEvents.toString());
+                this.clientAEvents.setLength(0);
+            }
         } else {
             for (Worker w : this.clientBWorkers.values()) {
                 buffer.append("worker ");
@@ -104,6 +150,12 @@ public class GameState {
                 buffer.append(b.toString());
                 buffer.append(" ");
             }
+            if(this.clientBEvents.length() > 0) {
+                buffer.append(this.clientBEvents.toString());
+                this.clientBEvents.setLength(0);
+            }
+
+
         }
 
         return buffer.toString();
@@ -135,6 +187,15 @@ public class GameState {
         }
         return buffer.toString();
 
+    }
+
+    public void addToEvents(char client, String event, String workerid, String objid) {
+        if(client == 'A') {
+            this.clientAEvents.append(event + " " + workerid + " " + objid + " ");
+        } else {
+            this.clientBEvents.append(event + " " + workerid + " " + objid + " ");
+
+        }
     }
 
 }

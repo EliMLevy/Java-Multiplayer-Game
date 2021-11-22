@@ -30,15 +30,16 @@ public class MultiServerSimpleThread extends Thread {
 
             String inputLine;
             toDest.println(this.id);
+            toDest.println(this.gameState.mapRows + " " + this.gameState.mapCols + " " + this.gameState.serializeMap() + " " + this.gameState.serializeGameObjects());
             toDest.println(this.gameState.serialize());
-
 
             while ((inputLine = fromSrc.readLine()) != null) {
                 if (inputLine.equals("CLOSE"))
                     break;
                 if (inputLine.length() > 0) {
-                    this.parseInput(this.gameState, inputLine);
-                    toDest.println(this.gameState.serialize(this.otherClient));
+                    parseInput(this.gameState, inputLine);
+                    String output = this.gameState.serialize(this.client);
+                    toDest.println(output);
                 }
             }
             this.src.close();
@@ -51,16 +52,24 @@ public class MultiServerSimpleThread extends Thread {
 
     public void parseInput(GameState gs, String input) {
         String[] parsedInput = input.split(" ");
-        for (int i = 0; i < parsedInput.length; i += 3) {
+        for (int i = 0; i < parsedInput.length; i ++) {
             switch (parsedInput[i]) {
             case "worker":
-                gs.updateWorker(this.client, Integer.parseInt(parsedInput[i + 1]), Double.parseDouble(parsedInput[i + 2]),
-                        Double.parseDouble(parsedInput[i + 3]));
+                gs.updateWorker(this.client, Integer.parseInt(parsedInput[i + 1]),
+                        Double.parseDouble(parsedInput[i + 2]), Double.parseDouble(parsedInput[i + 3]));
                 break;
             case "newWorker":
-                gs.addWorker(this.client, Integer.parseInt(parsedInput[i + 1]), Double.parseDouble(parsedInput[i + 2]),
-                        Double.parseDouble(parsedInput[i + 3]));
-
+                gs.addWorker(this.client, Integer.parseInt(parsedInput[i + 1]), 
+                    Double.parseDouble(parsedInput[i + 2]),
+                        Double.parseDouble(parsedInput[i + 3]), 
+                        Double.parseDouble(parsedInput[i + 4]),
+                        Double.parseDouble(parsedInput[i + 5]));
+            case "generate":
+                gs.addToEvents(this.client, "generate", parsedInput[i + 1], parsedInput[i + 2]);
+                break;
+            case "weaponry":
+                gs.addToEvents(this.client, "weaponry", parsedInput[i + 1], parsedInput[i + 2]);
+                break;
             default:
                 break;
             }

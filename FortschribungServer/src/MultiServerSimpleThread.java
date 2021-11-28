@@ -6,22 +6,21 @@ public class MultiServerSimpleThread extends Thread {
     private Socket src;
     private Socket dest;
 
-    private int id;
-    private GameState gameState;
+    private final int id;
 
-    private char client;
-    private char otherClient;
+    private final GameState initialGameState;
+    public boolean connected = true;
 
-    public MultiServerSimpleThread(Socket src, Socket dest, int id, GameState gs) {
+    public MultiServerSimpleThread(Socket src, Socket dest, int id) {
         super("MultiServerThread");
         this.src = src;
         this.dest = dest;
-        this.id = id;
-        this.client = this.id == 0 ? 'A' : 'B';
-        this.otherClient = this.id == 0 ? 'B' : 'A';
 
-        this.gameState = gs;
+        this.id = id;
+
         System.out.println("Thread created!");
+
+        this.initialGameState = new GameState();
     }
 
     public void run() {
@@ -29,51 +28,41 @@ public class MultiServerSimpleThread extends Thread {
                 BufferedReader fromSrc = new BufferedReader(new InputStreamReader(src.getInputStream()));) {
 
             String inputLine;
-            toDest.println(this.id);
-            toDest.println(this.gameState.mapRows + " " + this.gameState.mapCols + " " + this.gameState.serializeMap() + " " + this.gameState.serializeGameObjects());
-            toDest.println(this.gameState.serialize());
 
+            if(id == 0) {
+                toDest.println("ping");
+            } else {
+                toDest.println("pong");
+            }
+
+            // this.sendInitInfo(toDest);
+            toDest.println(this.initialGameState.serialize());
+     
             while ((inputLine = fromSrc.readLine()) != null) {
-                if (inputLine.equals("CLOSE"))
+                if (inputLine.equals("CLOSE")) {
+                    this.connected = false;
+                    
                     break;
+
+                }
                 if (inputLine.length() > 0) {
-                    parseInput(this.gameState, inputLine);
-                    String output = this.gameState.serialize(this.client);
-                    toDest.println(output);
+                    // System.out.println(inputLine);
+                    toDest.println(inputLine);
                 }
             }
             this.src.close();
         } catch (SocketException e) {
             System.out.println("Client " + this.id + " disconnected...");
+            this.connected = false;
         } catch (IOException e) {
             e.printStackTrace();
+            this.connected = false;
+
         }
     }
 
-    public void parseInput(GameState gs, String input) {
-        String[] parsedInput = input.split(" ");
-        for (int i = 0; i < parsedInput.length; i ++) {
-            switch (parsedInput[i]) {
-            case "worker":
-                gs.updateWorker(this.client, Integer.parseInt(parsedInput[i + 1]),
-                        Double.parseDouble(parsedInput[i + 2]), Double.parseDouble(parsedInput[i + 3]));
-                break;
-            case "newWorker":
-                gs.addWorker(this.client, Integer.parseInt(parsedInput[i + 1]), 
-                    Double.parseDouble(parsedInput[i + 2]),
-                        Double.parseDouble(parsedInput[i + 3]), 
-                        Double.parseDouble(parsedInput[i + 4]),
-                        Double.parseDouble(parsedInput[i + 5]));
-            case "generate":
-                gs.addToEvents(this.client, "generate", parsedInput[i + 1], parsedInput[i + 2]);
-                break;
-            case "weaponry":
-                gs.addToEvents(this.client, "weaponry", parsedInput[i + 1], parsedInput[i + 2]);
-                break;
-            default:
-                break;
-            }
-        }
-    }
+
+    
+
 
 }

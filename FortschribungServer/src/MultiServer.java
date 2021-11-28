@@ -28,32 +28,22 @@ public class MultiServer {
                 while (clientA == null || clientB == null) {
                     // MultiServerThread mst = new MultiServerThread(serverSocket.accept());
                     Socket connectedClient = serverSocket.accept();
-                    if (clientA == null) {
+                    if (clientA == null || clientA.isClosed() || !clientA.isConnected() || clientA.isInputShutdown() || clientA.isOutputShutdown()) {
                         clientA = connectedClient;
                         System.out.println("Client A connected");
                     } else {
                         clientB = connectedClient;
                         System.out.println("Client B connected");
-
+                        
                     }
                 }
-
+                
                 System.out.println("Got two clients!");
+                System.out.println(clientA.toString());
+                System.out.println(clientB.toString());
 
-                GameState gameState = new GameState();
-
-                for (int i = 0; i < 1; i++) {
-                    double x = (Math.random() * (64 * 3 - 70) + 70);
-                    double y = (Math.random() * (400 - 298) + 298);
-
-                    // MathUtils.random(70, 64 * 3), MathUtils.random(298, 400)
-
-                    gameState.addWorker('A', i, x, y, x, y);
-                    gameState.addWorker('B', i, (x + 10), (y + 10), x, y);
-                }
-
-                MultiServerSimpleThread msstA = new MultiServerSimpleThread(clientA, clientB, 0, gameState);
-                MultiServerSimpleThread msstB = new MultiServerSimpleThread(clientB, clientA, 1, gameState);
+                MultiServerSimpleThread msstA = new MultiServerSimpleThread(clientA, clientB, 0);
+                MultiServerSimpleThread msstB = new MultiServerSimpleThread(clientB, clientA, 1);
                 msstA.start();
                 msstB.start();
 

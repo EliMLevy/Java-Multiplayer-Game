@@ -49,7 +49,7 @@ public class GameState {
 
         this.workers = new ArrayList<>();
         workers.add("worker 0 100 300");
-        workers.add("worker 1 1088 -608");
+        workers.add("worker 1 1068 -608");
 
         timeStarted = System.currentTimeMillis();
     }

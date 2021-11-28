@@ -42,8 +42,10 @@ public class MultiServer {
                 System.out.println(clientA.toString());
                 System.out.println(clientB.toString());
 
-                MultiServerSimpleThread msstA = new MultiServerSimpleThread(clientA, clientB, 0);
-                MultiServerSimpleThread msstB = new MultiServerSimpleThread(clientB, clientA, 1);
+                GameState gameState = new GameState();
+
+                MultiServerSimpleThread msstA = new MultiServerSimpleThread(clientA, clientB, 0, gameState);
+                MultiServerSimpleThread msstB = new MultiServerSimpleThread(clientB, clientA, 1, gameState);
                 msstA.start();
                 msstB.start();
 

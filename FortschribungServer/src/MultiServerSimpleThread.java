@@ -11,7 +11,7 @@ public class MultiServerSimpleThread extends Thread {
     private final GameState initialGameState;
     public boolean connected = true;
 
-    public MultiServerSimpleThread(Socket src, Socket dest, int id) {
+    public MultiServerSimpleThread(Socket src, Socket dest, int id, GameState gameState) {
         super("MultiServerThread");
         this.src = src;
         this.dest = dest;
@@ -20,7 +20,7 @@ public class MultiServerSimpleThread extends Thread {
 
         System.out.println("Thread created!");
 
-        this.initialGameState = new GameState();
+        this.initialGameState = gameState;
     }
 
     public void run() {
@@ -47,7 +47,7 @@ public class MultiServerSimpleThread extends Thread {
                 }
                 if (inputLine.length() > 0) {
                     // System.out.println(inputLine);
-                    toDest.println(inputLine);
+                    toDest.println(inputLine + "!" + this.initialGameState.checkForUpdates(this.id));
                 }
             }
             this.src.close();
